@@ -2,6 +2,7 @@ module Main exposing (..)
 import Browser
 import Html exposing (Html, div, text, span)
 import Html.Events exposing (onClick)
+import Set
 
 -- TYPES
 type GameStatus = 
@@ -58,9 +59,26 @@ view model =
 
 
 -- INITIAL STATE
-initialGrid: Int -> Int -> List (List Cell)
-initialGrid rows columns = List.repeat rows (List.repeat columns (Cell True False) )
 
+getRandomBombPositions: Int -> Int -> Int -> List (Int, Int)
+getRandomBombPositions rows columns bombsCount =
+  [(0, 0), (1, 1), (2, 2), (3,3), (4,4), (5,5), (6,6), (7, 7)]
+
+setBombOnGridLocation: Grid -> Int -> Int -> Grid
+setBombOnGridLocation grid x y =
+  List.indexedMap (\i row -> ( List.indexedMap (\j cell -> if (i == x && j == y) then { cell | mine = True} else cell) row)) grid
+
+initialGrid: Int -> Int -> List (List Cell)
+initialGrid rows columns = 
+  let
+    bombPositions: List (Int, Int)
+    bombPositions = getRandomBombPositions rows columns 10
+
+    emptyGrid = List.repeat rows (List.repeat columns (Cell True False) )
+
+    bombedGrid = List.foldl (\(x, y) grid -> setBombOnGridLocation grid x y) emptyGrid bombPositions
+  in
+    bombedGrid
 initialModel : Model
 initialModel = Model (initialGrid 10 10)
 
