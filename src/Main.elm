@@ -5,6 +5,8 @@ import Html.Events exposing (onClick)
 import Set exposing (Set)
 import Random
 import Random.Set
+import Grid exposing (Grid)
+
 -- TYPES
 type GameStatus = 
   NotStart |
@@ -12,9 +14,7 @@ type GameStatus =
   Finished
 
 type alias Cell = { covered: Bool, mine: Bool }
-type alias Row = List Cell
-type alias Grid = List Row
-type alias Model = { grid: Grid }
+type alias Model = { grid: Grid Cell }
 
 type alias BombPositions = Set (Int, Int)
 type Msg 
@@ -25,14 +25,20 @@ type Msg
 
 -- STATE UPDATE HANDLERS
 
-openCellOnGridLocation: Grid -> Int -> Int -> Grid
+openCellOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
 openCellOnGridLocation grid x y =
-  List.indexedMap (\i row -> ( List.indexedMap (\j cell -> if (i == x && j == y && cell.covered) then { cell | covered = False} else cell) row)) grid
+  let
+    oldCell = Maybe.withDefault (Cell False False) (Grid.get (x, y) grid)
+  in
+  Grid.set (x, y) { oldCell | covered = False } grid
 
-placeBombOnGridLocation: Grid -> Int -> Int -> Grid
+placeBombOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
 placeBombOnGridLocation grid x y =
-  List.indexedMap (\i row -> ( List.indexedMap (\j cell -> if (i == x && j == y) then { cell | mine = True} else cell) row)) grid
-
+  let
+    oldCell = Maybe.withDefault (Cell False False) (Grid.get (x, y) grid)
+  in
+  Grid.set (x, y) { oldCell | mine = True} grid
+  
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -49,18 +55,19 @@ update msg model =
 -- VIEWS
 displayCell: Int -> Int -> Cell -> Html Msg
 displayCell x y { covered, mine } =
-
   case (covered, mine) of
     (True, _) -> span [ onClick (OpenCell{x = x, y = y})] [text "📦"]
     (False, True) -> span [] [text "💣"]
     (False, False) -> span [] [text "8"] -- calculate and put actual number
 
-displayRow: Int -> List Cell -> Html Msg
-displayRow x row =
-  div [] (List.indexedMap (\y cell -> displayCell x y cell) row)
 
-displayGrid: List (List Cell) -> Html Msg
-displayGrid grid = div [] (List.indexedMap displayRow grid)
+displayGrid: Grid Cell -> Html Msg
+displayGrid grid = 
+  let
+    gridOfDivs =  Grid.indexedMap displayCell grid
+    flattenedDivs = Grid.foldl (\cell list -> List.append list [cell]) [] gridOfDivs
+  in
+  div [] flattenedDivs
 
 view: Model -> Html Msg
 view model = 
@@ -77,14 +84,9 @@ getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
 getRandomBombPositions count rows columns = 
   Random.Set.set count (Random.pair (Random.int 0 rows) (Random.int 0 columns))
 
-
-setBombOnGridLocation: Grid -> Int -> Int -> Grid
-setBombOnGridLocation grid x y =
-  List.indexedMap (\i row -> ( List.indexedMap (\j cell -> if (i == x && j == y) then { cell | mine = True} else cell) row)) grid
-
-initialGrid: Int -> Int -> List (List Cell)
+initialGrid: Int -> Int -> Grid Cell
 initialGrid rows columns = 
-  List.repeat rows (List.repeat columns (Cell False False) )
+  Grid.repeat rows columns (Cell True False)
 
 initialCommand = Random.generate AddBombs (getRandomBombPositions 10 10 10)
 
