@@ -65,9 +65,9 @@ update msg model =
       ({model | grid = (openCellOnGridLocation model.grid cell.x cell.y)}, Cmd.none)
     FlagCell cell ->
       ({model | grid = flagCellOnGridLocation model.grid cell.x cell.y }, Cmd.none)
-    AddBombs bombs -> 
+    AddBombs bombLocations -> 
       let
-        newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombs
+        newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombLocations
         newModel = { model | grid = newGrid }
       in (newModel, Cmd.none)
 
@@ -103,13 +103,31 @@ displayCell x y { covered, mine } =
 displayGrid: Grid Cell -> Html Msg
 displayGrid grid = 
   let
+    -- columns = Grid.height grid
+    -- rows = Grid.width grid
+    dividor = min rows columns
+    gridTemlateRows = String.concat [
+      "repeat(",
+      String.fromInt(rows),
+      ", ",
+      String.fromFloat (80 / (toFloat dividor)),
+      "vmin)"
+      ]
+    gridTemplateColumns = String.concat [
+      "repeat(",
+      String.fromInt(columns),
+      ", ",
+      String.fromFloat (80 / (toFloat dividor)),
+      "vmin)"
+      ]
     gridOfDivs =  Grid.indexedMap displayCell grid
     flattenedDivs = Grid.foldl (\cell list -> List.append list [cell]) [] gridOfDivs
   in
   div 
     [ style "display" "grid"
-    , style "grid-template-rows" "repeat(10, auto)"
-    , style "grid-template-columns" "repeat(10, auto)"
+    , style "grid-template-rows" gridTemlateRows -- replace with rows and vmin * 80 / rows
+    , style "box-sizing" "border-box"
+    , style "grid-template-columns" gridTemplateColumns -- replace with columns and vmin * 80 / columns
     , style "justify-content" "center"
     , style "align-content" "center"
     ] 
@@ -138,19 +156,22 @@ view model =
 
 
 -- INITIAL STATE
+rows = 10
+columns = 10
+bombs = 20
 
-getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
-getRandomBombPositions count rows columns = 
-  Random.Set.set count (Random.pair (Random.int 0 rows) (Random.int 0 columns))
+getRandomBombPositions: Random.Generator BombPositions
+getRandomBombPositions = 
+  Random.Set.set bombs (Random.pair (Random.int 0 rows) (Random.int 0 columns))
 
-initialGrid: Int -> Int -> Grid Cell
-initialGrid rows columns = 
+initialGrid: Grid Cell
+initialGrid = 
   Grid.repeat rows columns defaultCell
 
-initialCommand = Random.generate AddBombs (getRandomBombPositions 10 10 10)
+initialCommand = Random.generate AddBombs (getRandomBombPositions)
 
 init : () -> (Model, Cmd Msg)
-init _ = (Model (initialGrid 10 10), initialCommand)
+init _ = (Model (initialGrid), initialCommand)
 
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.none
