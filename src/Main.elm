@@ -2,8 +2,9 @@ module Main exposing (..)
 import Browser
 import Html exposing (Html, div, text, span)
 import Html.Events exposing (onClick)
-import Set
-
+import Set exposing (Set)
+import Random
+import Random.Set
 -- TYPES
 type GameStatus = 
   NotStart |
@@ -15,9 +16,11 @@ type alias Row = List Cell
 type alias Grid = List Row
 type alias Model = { grid: Grid }
 
-type Msg = 
-  OpenCell { x: Int, y: Int } |
-  FlagCell { x: Int, y: Int }
+type alias BombPositions = Set (Int, Int)
+type Msg 
+  = OpenCell { x: Int, y: Int }
+  | FlagCell { x: Int, y: Int }
+  | AddBombs BombPositions
 
 
 -- STATE UPDATE HANDLERS
@@ -25,11 +28,22 @@ type Msg =
 openCellOnGridLocation: Grid -> Int -> Int -> Grid
 openCellOnGridLocation grid x y =
   List.indexedMap (\i row -> ( List.indexedMap (\j cell -> if (i == x && j == y && cell.covered) then { cell | covered = False} else cell) row)) grid
-update: Msg -> Model -> Model
+
+placeBombOnGridLocation: Grid -> Int -> Int -> Grid
+placeBombOnGridLocation grid x y =
+  List.indexedMap (\i row -> ( List.indexedMap (\j cell -> if (i == x && j == y) then { cell | mine = True} else cell) row)) grid
+
+
+update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
-     OpenCell cell -> {model | grid = (openCellOnGridLocation model.grid cell.x cell.y)}
-     _ -> model
+     OpenCell cell -> ({model | grid = (openCellOnGridLocation model.grid cell.x cell.y)}, Cmd.none)
+     AddBombs bombs -> 
+      let
+        newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombs
+        newModel = { model | grid = newGrid }
+      in (newModel, Cmd.none)
+     _ -> (model, Cmd.none)
 
 
 -- VIEWS
@@ -46,11 +60,10 @@ displayRow x row =
   div [] (List.indexedMap (\y cell -> displayCell x y cell) row)
 
 displayGrid: List (List Cell) -> Html Msg
-displayGrid grid =
-  div [] (List.indexedMap displayRow grid)
+displayGrid grid = div [] (List.indexedMap displayRow grid)
 
 view: Model -> Html Msg
-view model =
+view model = 
   div []
   [
     text "Minesweeper",
@@ -60,9 +73,10 @@ view model =
 
 -- INITIAL STATE
 
-getRandomBombPositions: Int -> Int -> Int -> List (Int, Int)
-getRandomBombPositions rows columns bombsCount =
-  [(0, 0), (1, 1), (2, 2), (3,3), (4,4), (5,5), (6,6), (7, 7)]
+getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
+getRandomBombPositions count rows columns = 
+  Random.Set.set count (Random.pair (Random.int 0 rows) (Random.int 0 columns))
+
 
 setBombOnGridLocation: Grid -> Int -> Int -> Grid
 setBombOnGridLocation grid x y =
@@ -70,17 +84,14 @@ setBombOnGridLocation grid x y =
 
 initialGrid: Int -> Int -> List (List Cell)
 initialGrid rows columns = 
-  let
-    bombPositions: List (Int, Int)
-    bombPositions = getRandomBombPositions rows columns 10
+  List.repeat rows (List.repeat columns (Cell False False) )
 
-    emptyGrid = List.repeat rows (List.repeat columns (Cell True False) )
+initialCommand = Random.generate AddBombs (getRandomBombPositions 10 10 10)
 
-    bombedGrid = List.foldl (\(x, y) grid -> setBombOnGridLocation grid x y) emptyGrid bombPositions
-  in
-    bombedGrid
-initialModel : Model
-initialModel = Model (initialGrid 10 10)
+init : () -> (Model, Cmd Msg)
+init _ = (Model (initialGrid 10 10), initialCommand)
 
--- START
-main = Browser.sandbox { init = initialModel, update = update, view = view}
+subscriptions : Model -> Sub Msg
+subscriptions _ = Sub.none
+
+main = Browser.element { init = init, update = update, subscriptions = subscriptions, view = view}
