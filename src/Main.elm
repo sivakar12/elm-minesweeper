@@ -6,6 +6,7 @@ import Set exposing (Set)
 import Random
 import Random.Set
 import Grid exposing (Grid)
+import Html.Attributes exposing (style)
 
 -- TYPES
 type GameStatus = 
@@ -53,12 +54,23 @@ update msg model =
 
 
 -- VIEWS
+
+cellStyles = 
+  [ style "aspect-ratio" "1"
+  , style "border" "2px solid black"
+  , style "cursor" "pointer"
+  , style "display" "flex"
+  , style "justify-content" "center"
+  , style "align-items" "center"
+  , style "user-select" "none"
+  ]
+
 displayCell: Int -> Int -> Cell -> Html Msg
 displayCell x y { covered, mine } =
   case (covered, mine) of
-    (True, _) -> span [ onClick (OpenCell{x = x, y = y})] [text "📦"]
-    (False, True) -> span [] [text "💣"]
-    (False, False) -> span [] [text "8"] -- calculate and put actual number
+    (True, _) -> span (cellStyles ++ [ onClick (OpenCell{x = x, y = y})]) [text "📦"]
+    (False, True) -> span cellStyles [text "💣"]
+    (False, False) -> span cellStyles [text "8"] -- calculate and put actual number
 
 
 displayGrid: Grid Cell -> Html Msg
@@ -67,15 +79,35 @@ displayGrid grid =
     gridOfDivs =  Grid.indexedMap displayCell grid
     flattenedDivs = Grid.foldl (\cell list -> List.append list [cell]) [] gridOfDivs
   in
-  div [] flattenedDivs
+  div 
+    [ style "display" "grid"
+    , style "grid-template-rows" "repeat(10, auto)"
+    , style "grid-template-columns" "repeat(10, auto)"
+    , style "justify-content" "center"
+    , style "align-content" "center"
+    ] 
+    flattenedDivs
+
+header = 
+  div 
+    [
+      style "font-size" "200%"
+    ] 
+    [text "Minesweeper"]
 
 view: Model -> Html Msg
 view model = 
-  div []
-  [
-    text "Minesweeper",
-    displayGrid model.grid
-  ]
+  div 
+    [ style "display" "flex"
+    , style "flex-direction" "column"
+    , style "align-items" "center"
+    , style "justify-content" "center"
+    , style "height" "100vh"
+    ]
+    [
+      header,
+      displayGrid model.grid
+    ]
 
 
 -- INITIAL STATE
