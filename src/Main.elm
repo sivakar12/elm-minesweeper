@@ -1,12 +1,15 @@
 module Main exposing (..)
 import Browser
 import Html exposing (Html, div, text, span)
-import Html.Events exposing (onClick, onDoubleClick)
+import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Set exposing (Set)
 import Random
 import Random.Set
 import Grid exposing (Grid)
 import Html.Attributes exposing (style)
+import Html exposing (input)
+import Html.Attributes exposing (type_, value)
+import Maybe
 
 -- TYPES
 type GameStatus = 
@@ -31,6 +34,8 @@ type Msg
   = OpenCell { x: Int, y: Int }
   | FlagCell { x: Int, y: Int }
   | AddBombs BombPositions
+  | HandleRowInputChange String
+  | HandleColumnInputChange String
 
 
 -- STATE UPDATE HANDLERS
@@ -70,6 +75,26 @@ update msg model =
         newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombLocations
         newModel = { model | grid = newGrid }
       in (newModel, Cmd.none)
+    HandleRowInputChange input -> 
+      let
+          newRows = Maybe.withDefault initialRows (String.toInt input)
+          newColumns = Grid.height model.grid
+          newBombs = 20
+          newCommand = initialCommand newRows newColumns newBombs
+          newGrid = initialGrid newRows newColumns
+          newModel = { model | grid = newGrid}
+      in
+      (newModel, newCommand)
+    HandleColumnInputChange input -> 
+      let
+          newColumns = Maybe.withDefault initialRows (String.toInt input)
+          newRows = Grid.width model.grid
+          newBombs = 20
+          newCommand = initialCommand newRows newColumns newBombs
+          newGrid = initialGrid newRows newColumns
+          newModel = { model | grid = newGrid}
+      in
+      (newModel, newCommand)
 
 
 -- VIEWS
@@ -103,22 +128,24 @@ displayCell x y { covered, mine } =
 displayGrid: Grid Cell -> Html Msg
 displayGrid grid = 
   let
-    -- columns = Grid.height grid
-    -- rows = Grid.width grid
-    dividor = min rows columns
+    columns = Grid.height grid
+    rows = Grid.width grid
+    dividor = max rows columns
     gridTemlateRows = String.concat [
       "repeat(",
       String.fromInt(rows),
       ", ",
-      String.fromFloat (80 / (toFloat dividor)),
+      String.fromFloat (75 / (toFloat dividor)),
       "vmin)"
+      -- "auto)"
       ]
     gridTemplateColumns = String.concat [
       "repeat(",
       String.fromInt(columns),
       ", ",
-      String.fromFloat (80 / (toFloat dividor)),
+      String.fromFloat (75 / (toFloat dividor)),
       "vmin)"
+      -- "auto)"
       ]
     gridOfDivs =  Grid.indexedMap displayCell grid
     flattenedDivs = Grid.foldl (\cell list -> List.append list [cell]) [] gridOfDivs
@@ -129,49 +156,65 @@ displayGrid grid =
     , style "box-sizing" "border-box"
     , style "grid-template-columns" gridTemplateColumns -- replace with columns and vmin * 80 / columns
     , style "justify-content" "center"
-    , style "align-content" "center"
+    , style "align-items" "center"
     ] 
     flattenedDivs
 
 header = 
   div 
     [
-      style "font-size" "200%"
+      style "font-size" "200%",
+      style "margin-bottom" "2%"
     ] 
     [text "Minesweeper"]
 
+controls =
+  div
+    [
+      style "display" "flex",
+      style "flex-direction" "row",
+      style "justify-content" "space-around",
+      style "margin-bottom" "1%"
+    ]
+    [
+      span [] [text "Rows: "],
+      input [type_ "number", value (String.fromInt initialRows), onInput HandleRowInputChange] [],
+      span [] [text "Columns: "],
+      input [type_ "number", value (String.fromInt initialColumns), onInput HandleColumnInputChange] []
+    ]
 view: Model -> Html Msg
 view model = 
   div 
     [ style "display" "flex"
     , style "flex-direction" "column"
     , style "align-items" "center"
-    , style "justify-content" "center"
+    , style "justify-content" "space-between"
     , style "height" "100vh"
     ]
     [
       header,
-      displayGrid model.grid
+      displayGrid model.grid,
+      controls
     ]
 
 
 -- INITIAL STATE
-rows = 10
-columns = 10
-bombs = 20
+initialRows = 10
+initialColumns = 6
+initialBombs = 20
 
-getRandomBombPositions: Random.Generator BombPositions
-getRandomBombPositions = 
+getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
+getRandomBombPositions rows columns bombs = 
   Random.Set.set bombs (Random.pair (Random.int 0 rows) (Random.int 0 columns))
 
-initialGrid: Grid Cell
-initialGrid = 
+initialGrid: Int -> Int -> Grid Cell
+initialGrid rows columns = 
   Grid.repeat rows columns defaultCell
 
-initialCommand = Random.generate AddBombs (getRandomBombPositions)
+initialCommand rows columns bombs = Random.generate AddBombs (getRandomBombPositions rows columns bombs)
 
 init : () -> (Model, Cmd Msg)
-init _ = (Model (initialGrid), initialCommand)
+init _ = (Model (initialGrid initialRows initialColumns), initialCommand initialRows initialColumns initialBombs)
 
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.none
