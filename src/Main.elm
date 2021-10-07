@@ -1,7 +1,7 @@
 module Main exposing (..)
 import Browser
 import Html exposing (Html, div, text, span)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onDoubleClick)
 import Set exposing (Set)
 import Random
 import Random.Set
@@ -14,7 +14,16 @@ type GameStatus =
   Playing |
   Finished
 
-type alias Cell = { covered: Bool, mine: Bool }
+type CoverState 
+  = Covered
+  | Opened
+  | Flagged
+
+type MineState
+  = Mined
+  | NotMined
+
+type alias Cell = { covered: CoverState, mine: MineState }
 type alias Model = { grid: Grid Cell }
 
 type alias BombPositions = Set (Int, Int)
@@ -25,32 +34,42 @@ type Msg
 
 
 -- STATE UPDATE HANDLERS
+defaultCell = Cell Covered NotMined
 
 openCellOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
 openCellOnGridLocation grid x y =
   let
-    oldCell = Maybe.withDefault (Cell False False) (Grid.get (x, y) grid)
+    oldCell = Maybe.withDefault defaultCell (Grid.get (x, y) grid)
   in
-  Grid.set (x, y) { oldCell | covered = False } grid
+  Grid.set (x, y) { oldCell | covered = Opened } grid
+
+flagCellOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
+flagCellOnGridLocation grid x y =
+  let
+    oldCell = Maybe.withDefault defaultCell (Grid.get (x, y) grid)
+  in
+  Grid.set (x, y) { oldCell | covered = Flagged } grid
 
 placeBombOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
 placeBombOnGridLocation grid x y =
   let
-    oldCell = Maybe.withDefault (Cell False False) (Grid.get (x, y) grid)
+    oldCell = Maybe.withDefault defaultCell (Grid.get (x, y) grid)
   in
-  Grid.set (x, y) { oldCell | mine = True} grid
+  Grid.set (x, y) { oldCell | mine = Mined} grid
   
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
-     OpenCell cell -> ({model | grid = (openCellOnGridLocation model.grid cell.x cell.y)}, Cmd.none)
-     AddBombs bombs -> 
+    OpenCell cell -> 
+      ({model | grid = (openCellOnGridLocation model.grid cell.x cell.y)}, Cmd.none)
+    FlagCell cell ->
+      ({model | grid = flagCellOnGridLocation model.grid cell.x cell.y }, Cmd.none)
+    AddBombs bombs -> 
       let
         newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombs
         newModel = { model | grid = newGrid }
       in (newModel, Cmd.none)
-     _ -> (model, Cmd.none)
 
 
 -- VIEWS
@@ -67,10 +86,18 @@ cellStyles =
 
 displayCell: Int -> Int -> Cell -> Html Msg
 displayCell x y { covered, mine } =
+  let
+    clickHandlers = 
+      [
+        onClick (OpenCell{x = x, y = y}), 
+        onDoubleClick (FlagCell { x = x, y = y})
+      ]
+  in
   case (covered, mine) of
-    (True, _) -> span (cellStyles ++ [ onClick (OpenCell{x = x, y = y})]) [text "📦"]
-    (False, True) -> span cellStyles [text "💣"]
-    (False, False) -> span cellStyles [text "8"] -- calculate and put actual number
+    (Covered, _) -> span (cellStyles ++ clickHandlers) [text "📦"]
+    (Opened, Mined) -> span cellStyles [text "💣"]
+    (Opened, NotMined) -> span cellStyles [text "8"] -- calculate and put actual number
+    (Flagged, _) -> span cellStyles [text "🚩"]
 
 
 displayGrid: Grid Cell -> Html Msg
@@ -118,7 +145,7 @@ getRandomBombPositions count rows columns =
 
 initialGrid: Int -> Int -> Grid Cell
 initialGrid rows columns = 
-  Grid.repeat rows columns (Cell True False)
+  Grid.repeat rows columns defaultCell
 
 initialCommand = Random.generate AddBombs (getRandomBombPositions 10 10 10)
 
