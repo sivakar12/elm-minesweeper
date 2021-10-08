@@ -8,7 +8,9 @@ import Grid exposing (Grid)
 import Element as E
 import Element.Font
 import Element.Input
+import Element.Events
 import Element.Border
+import Element.Cursor
 import Maybe
 import Array
 
@@ -105,19 +107,31 @@ update msg model =
 -- there are as many rows as height in grid
 -- VIEWS
 
+cellStyles =
+  [ E.width <| E.fillPortion 1
+  , E.height <| E.fillPortion 1
+  -- , Element.Border.width 1
+  , Element.Cursor.pointer
+  , Element.Font.size 40
+  ]
+
 displayCell: Int -> Int -> Cell -> E.Element Msg
-displayCell x y cell =
-  E.text "O"
+displayCell x y { covered, mine } =
+  case (covered, mine) of
+    (Covered, _) -> E.el (cellStyles ++ [Element.Events.onClick <| OpenCell { x = x, y = y}]) <| E.text "📦"
+    (Opened, Mined) -> E.el cellStyles <| E.text "💣"
+    (Opened, NotMined) -> E.el cellStyles <| E.text "8️⃣" -- calculate and put actual number
+    (Flagged, _) -> E.el cellStyles <| E.text "🚩"
 
 displayRow: Int -> Array.Array Cell -> E.Element Msg
-displayRow x row =
+displayRow y row =
   E.row
-    []
-    <| Array.toList <| Array.indexedMap (\y cell -> (displayCell x y cell)) <| row
+    [E.padding 2, E.spacing 5]
+    <| Array.toList <| Array.indexedMap (\x cell -> (displayCell x y cell)) <| row
 gridView: Grid Cell -> E.Element Msg
 gridView grid =
   E.column
-    []
+    [E.padding 2, E.spacing 10]
     <| Array.toList <| Array.indexedMap displayRow <| Grid.rows grid
 
 controlsView: E.Element Msg
@@ -160,8 +174,8 @@ view model =
 
 
 -- INITIAL STATE
-initialWidth = 10
-initialHeight = 6
+initialWidth = 6
+initialHeight = 10
 initialBombs = 20
 
 getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
