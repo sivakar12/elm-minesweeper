@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elm Minesweeper</title>
+  <style>body { padding: 0; margin: 0; }</style>
+</head>
+<body>
+	<div id="elm-node"></div>
+	<script src="elm.js"></script>
+	<script>
+		var app = Elm.Main.init({
+			node: document.getElementById("elm-node")
+		});
+	</script>
+</body>
+</html>
