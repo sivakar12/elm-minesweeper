@@ -15,7 +15,7 @@ import ViewElmUI exposing (view)
 
 initialWidth = 6
 initialHeight = 10
-initialBombs = 20
+initialBombs = 2
 
 initialCommand = addRandomBombsCommand
 

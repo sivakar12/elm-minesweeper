@@ -4,9 +4,9 @@ import Grid exposing (Grid)
 import Set exposing (Set)
 
 type GameState = 
-  NotStart |
+  NotStarted |
   Playing |
-  Finished
+  Finished Bool
 
 type CoverState 
   = Covered

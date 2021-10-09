@@ -66,13 +66,22 @@ controlsView =
 -- Todo
 -- splashScreen: Model -> Html Msg
 -- helpScreen: Model -> Html Msg
+bottomDisplay: GameState -> Bool -> E.Element Msg
+bottomDisplay gameState flaggingMode =
+  case gameState of
+    NotStarted -> controlsView
+    Playing -> flagToggle flaggingMode
+    Finished isWon ->
+      case isWon of
+        True -> E.text "Won"
+        False -> E.text "Lost"
 
 flagToggle: Bool -> E.Element Msg
 flagToggle flaggingMode =
   E.el 
     [
-      Element.Events.onClick ToggleFlaggingMode,
-      E.padding 20, E.spacing 5
+      Element.Events.onClick ToggleFlaggingMode
+      -- E.padding 20, E.spacing 5
     ]
     (E.text <| String.concat ["🚩",(if flaggingMode then "✔️" else "❌")])
 view: Model -> Html Msg
@@ -90,7 +99,6 @@ view model =
       ] 
       [
         E.el [E.alignTop, E.centerX, Element.Font.size 50] <| E.text "Minesweeper",
-        E.el [E.centerX, E.centerY] <| flagToggle model.flaggingMode,
         E.el [E.centerX, E.centerY] <| gridView model.grid,
-        E.el [E.alignBottom, E.centerX] controlsView
+        E.el [E.alignBottom, E.centerX, E.padding 20] <| bottomDisplay model.gameState model.flaggingMode
       ]

@@ -64,6 +64,7 @@ addNeighborBombsForCell grid x y =
     bombCount = List.foldl foldFunction 0 neighborCells
   in
   { cellOriginal | neighboringBombs = bombCount }
+
 countNeighborBombs: Grid Cell -> Grid Cell
 countNeighborBombs grid =
   Grid.indexedMap (\x y _ -> addNeighborBombsForCell grid x y ) grid
@@ -79,6 +80,35 @@ createEmptyGrid: Int -> Int -> Grid Cell
 createEmptyGrid width height = 
   Grid.repeat width height defaultCell
 
+-- a game is won when all the cells that are not mined are uncovered
+isGameWon: Grid Cell -> Bool
+isGameWon grid =
+  let
+    foldFunction: Cell -> Bool -> Bool
+    foldFunction cell goodSoFar =
+      let
+        wonState = -- are these combinations what you would find in a finished game
+          case (cell.mine, cell.covered) of
+            (Mined, Covered) -> True
+            (Mined, Opened) -> False
+            (Mined, Flagged) -> True
+            (NotMined, Covered) -> False
+            (NotMined, Opened) -> True
+            (NotMined, Flagged) -> False
+      in
+        goodSoFar && wonState
+
+  in
+  Grid.foldl foldFunction True grid
+
+isExplosion: Grid Cell -> Int -> Int -> Bool
+isExplosion grid x y =
+  let
+    cell = Maybe.withDefault defaultCell <| Grid.get (x, y) grid
+  in  
+    case (cell.mine) of
+      Mined -> True
+      _ -> False
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
@@ -90,8 +120,10 @@ update msg model =
               openCellOnGridLocation model.grid cell.x cell.y
             True ->
               toggleFlagOnGridLocation model.grid cell.x cell.y
+        isGameLost = (isExplosion model.grid cell.x cell.y) && (not model.flaggingMode)
+        newGameState = if (isGameWon newGrid) then Finished True else (if isGameLost then Finished False else Playing)
       in
-      ({model | grid = newGrid }, Cmd.none)
+      ({model | grid = newGrid, gameState = newGameState }, Cmd.none)
     AddBombs bombLocations -> 
       let
         newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombLocations
