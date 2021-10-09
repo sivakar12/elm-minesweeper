@@ -65,18 +65,28 @@ controlsView =
       Element.Input.button controlButtonStyles { label = E.text "Start", onPress = Maybe.Just StartGame}
     ]
 
--- Todo
--- splashScreen: Model -> Html Msg
--- helpScreen: Model -> Html Msg
+
+displayResult: Bool -> E.Element Msg
+displayResult isWon =
+  let 
+    resultText =
+      case isWon of
+        True -> "Won"
+        False -> "Lost"
+  in
+  E.row
+    [E.spacing 20]
+    [
+      E.el [] <| E.text resultText,
+      Element.Input.button [] { label = E.text "New Game", onPress = Maybe.Just StartGame }
+    ]
+
 bottomDisplay: GameState -> Bool -> E.Element Msg
 bottomDisplay gameState flaggingMode =
   case gameState of
     NotStarted -> controlsView
     Playing -> flagToggle flaggingMode
-    Finished isWon ->
-      case isWon of
-        True -> E.text "Won"
-        False -> E.text "Lost"
+    Finished isWon -> displayResult isWon
 
 flagToggle: Bool -> E.Element Msg
 flagToggle flaggingMode =

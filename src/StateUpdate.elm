@@ -154,16 +154,21 @@ update msg model =
             case axis of
               Width -> oldHeight
               Height -> oldHeight + change
-          newBombs = getBombCountFromGridSize newWidth newHeight
-          newCommand = addRandomBombsCommand newWidth newHeight newBombs
           newGrid = createEmptyGrid newWidth newHeight
           newModel = { model | grid = newGrid}
       in
-      (newModel, newCommand)
+      (newModel, Cmd.none)
     ToggleFlaggingMode ->
       let
         newModel = { model | flaggingMode =  not model.flaggingMode }
       in
       (newModel, Cmd.none)
     StartGame ->
-      ({model | gameState = Playing }, Cmd.none)
+      let
+        height = Grid.height model.grid
+        width = Grid.width model.grid
+        bombs = getBombCountFromGridSize width height
+        newGrid = createEmptyGrid width height
+        newCommand = addRandomBombsCommand height width bombs
+      in
+      ({model | grid = newGrid, gameState = Playing }, newCommand)
