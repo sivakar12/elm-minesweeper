@@ -27,10 +27,10 @@ numbersToEmoji =
 displayCell: Int -> Int -> Cell -> E.Element Msg
 displayCell x y { covered, mine, neighboringBombs } =
   case (covered, mine) of
-    (Covered, _) -> E.el (cellStyles ++ [Element.Events.onClick <| OpenCell { x = x, y = y}]) <| E.text "📦"
+    (Covered, _) -> E.el (cellStyles ++ [Element.Events.onClick <| HandleCellClick { x = x, y = y}]) <| E.text "📦"
     (Opened, Mined) -> E.el cellStyles <| E.text "💣"
     (Opened, NotMined) -> E.el cellStyles <| E.text <| Maybe.withDefault "" <| Array.get neighboringBombs numbersToEmoji
-    (Flagged, _) -> E.el cellStyles <| E.text "🚩"
+    (Flagged, _) -> E.el (cellStyles ++ [Element.Events.onClick <| HandleCellClick { x = x, y = y}]) <| E.text "⛳"
 
 displayRow: Int -> Array.Array Cell -> E.Element Msg
 displayRow y row =

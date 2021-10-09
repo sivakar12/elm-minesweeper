@@ -17,12 +17,17 @@ openCellOnGridLocation grid x y =
   in
   Grid.set (x, y) { oldCell | covered = Opened } grid
 
-flagCellOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
-flagCellOnGridLocation grid x y =
+toggleFlagOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
+toggleFlagOnGridLocation grid x y =
   let
     oldCell = Maybe.withDefault defaultCell (Grid.get (x, y) grid)
+    newCoveredState =
+      case oldCell.covered of
+        Flagged -> Covered
+        Covered -> Flagged
+        Opened -> Opened
   in
-  Grid.set (x, y) { oldCell | covered = Flagged } grid
+  Grid.set (x, y) { oldCell | covered = newCoveredState } grid
 
 placeBombOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
 placeBombOnGridLocation grid x y =
@@ -77,10 +82,16 @@ createEmptyGrid width height =
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
-    OpenCell cell -> 
-      ({model | grid = (openCellOnGridLocation model.grid cell.x cell.y)}, Cmd.none)
-    FlagCell cell ->
-      ({model | grid = flagCellOnGridLocation model.grid cell.x cell.y }, Cmd.none)
+    HandleCellClick cell ->
+      let
+        newGrid =
+          case model.flaggingMode of
+            False ->
+              openCellOnGridLocation model.grid cell.x cell.y
+            True ->
+              toggleFlagOnGridLocation model.grid cell.x cell.y
+      in
+      ({model | grid = newGrid }, Cmd.none)
     AddBombs bombLocations -> 
       let
         newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombLocations

@@ -34,8 +34,7 @@ type ChangeDirection = Increase | Decrease
 
 type alias BombPositions = Set (Int, Int)
 type Msg 
-  = OpenCell { x: Int, y: Int }
-  | FlagCell { x: Int, y: Int }
+  = HandleCellClick{ x: Int, y: Int }
   | AddBombs BombPositions
   | ChangeGridSize ChangeAxis ChangeDirection
   | ToggleFlaggingMode

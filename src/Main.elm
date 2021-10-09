@@ -13,8 +13,6 @@ import Types exposing (..)
 import StateUpdate exposing (update, addRandomBombsCommand, createEmptyGrid)
 import ViewElmUI exposing (view)
 
-
--- INITIAL STATE
 initialWidth = 6
 initialHeight = 10
 initialBombs = 20
@@ -25,7 +23,7 @@ init : () -> (Model, Cmd Msg)
 init _ = 
   (
     {
-      grid = createEmptyGrid initialWidth initialHeight, 
+      grid = createEmptyGrid initialWidth initialHeight,
       flaggingMode = False,
       gameState = Playing
     },
