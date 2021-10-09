@@ -65,7 +65,7 @@ countNeighborBombs grid =
 
 getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
 getRandomBombPositions width height bombs = 
-  Random.Set.set bombs (Random.pair (Random.int 0 height) (Random.int 0 width))
+  Random.Set.set bombs (Random.pair (Random.int 0 width) (Random.int 0 height))
 
 addRandomBombsCommand width height bombs = 
   Random.generate AddBombs (getRandomBombPositions width height bombs)
