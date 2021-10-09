@@ -5,6 +5,7 @@ import Element.Font
 import Element.Input
 import Element.Events
 import Element.Border
+import Element.Background
 import Element.Cursor
 import Html exposing (Html)
 import Grid exposing (Grid)
@@ -78,12 +79,29 @@ bottomDisplay gameState flaggingMode =
 
 flagToggle: Bool -> E.Element Msg
 flagToggle flaggingMode =
+  let
+    redBackground = 
+      [
+        Element.Background.color <| E.rgb 0 0 0,
+        Element.Font.color <| E.rgb 255 255 255
+      ]
+    whiteBackground = 
+      [
+        Element.Font.color <| E.rgb 0 0 0,
+        Element.Background.color <| E.rgb 255 255 255
+      ]
+    (openModeText, flagModeText) =
+      case flaggingMode of
+        True -> (E.el whiteBackground (E.text "OPEN"), E.el redBackground (E.text "FLAG"))
+        False -> (E.el redBackground (E.text "OPEN"), E.el whiteBackground (E.text "FLAG"))
+  in
   E.el 
     [
       Element.Events.onClick ToggleFlaggingMode
       -- E.padding 20, E.spacing 5
     ]
-    (E.text <| String.concat ["🚩",(if flaggingMode then "✔️" else "❌")])
+    (E.row [E.spacing 20] [openModeText, flagModeText])
+    -- (E.text <| String.concat ["🚩",(if flaggingMode then "✔️" else "❌")])
 view: Model -> Html Msg
 view model = 
   E.layout 
