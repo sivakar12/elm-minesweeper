@@ -130,7 +130,7 @@ update msg model =
             isGameLost = (isExplosion model.grid cell.x cell.y) && (not model.flaggingMode)
             newGameState = if (isGameWon newGrid) then Finished True else (if isGameLost then Finished False else Playing)
           in
-          ({model | grid = newGrid, gameState = newGameState }, Cmd.none)
+          ({model | grid = newGrid, gameState = newGameState, flaggingMode = False }, Cmd.none)
         _ -> (model, Cmd.none) -- do nothing when the state is not playing
     AddBombs bombLocations -> 
       let
