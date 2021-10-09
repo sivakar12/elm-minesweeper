@@ -38,3 +38,4 @@ type Msg
   | AddBombs BombPositions
   | ChangeGridSize ChangeAxis ChangeDirection
   | ToggleFlaggingMode
+  | StartGame

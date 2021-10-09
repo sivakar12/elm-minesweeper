@@ -157,3 +157,5 @@ update msg model =
         newModel = { model | flaggingMode =  not model.flaggingMode }
       in
       (newModel, Cmd.none)
+    StartGame ->
+      ({model | gameState = Playing }, Cmd.none)

@@ -25,7 +25,7 @@ init _ =
     {
       grid = createEmptyGrid initialWidth initialHeight,
       flaggingMode = False,
-      gameState = Playing
+      gameState = NotStarted
     },
     initialCommand initialWidth initialHeight initialBombs
   )

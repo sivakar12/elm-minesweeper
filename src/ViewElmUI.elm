@@ -61,7 +61,8 @@ controlsView =
       Element.Input.button controlButtonStyles { label = E.text "➖", onPress = Maybe.Just <| ChangeGridSize Width Decrease },
       E.text "Height: ",
       Element.Input.button controlButtonStyles { label = E.text "➕", onPress = Maybe.Just <| ChangeGridSize Height Increase },
-      Element.Input.button controlButtonStyles { label = E.text "➖", onPress = Maybe.Just <| ChangeGridSize Height Decrease } 
+      Element.Input.button controlButtonStyles { label = E.text "➖", onPress = Maybe.Just <| ChangeGridSize Height Decrease }, 
+      Element.Input.button controlButtonStyles { label = E.text "Start", onPress = Maybe.Just StartGame}
     ]
 
 -- Todo
