@@ -109,3 +109,8 @@ update msg model =
           newModel = { model | grid = newGrid}
       in
       (newModel, newCommand)
+    ToggleFlaggingMode ->
+      let
+        newModel = { model | flaggingMode =  not model.flaggingMode }
+      in
+      (newModel, Cmd.none)

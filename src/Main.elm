@@ -19,19 +19,26 @@ initialWidth = 6
 initialHeight = 10
 initialBombs = 20
 
-
-
-
 initialCommand = addRandomBombsCommand
 
 init : () -> (Model, Cmd Msg)
 init _ = 
   (
-    Model <|createEmptyGrid initialWidth initialHeight, 
+    {
+      grid = createEmptyGrid initialWidth initialHeight, 
+      flaggingMode = False,
+      gameState = Playing
+    },
     initialCommand initialWidth initialHeight initialBombs
   )
 
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.none
 
-main = Browser.element { init = init, update = update, subscriptions = subscriptions, view = view}
+main = 
+  Browser.element 
+    { init = init
+    , update = update
+    , subscriptions = subscriptions
+    , view = view
+    }

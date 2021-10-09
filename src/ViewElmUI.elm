@@ -37,6 +37,7 @@ displayRow y row =
   E.row
     [E.padding 2, E.spacing 5]
     <| Array.toList <| Array.indexedMap (\x cell -> (displayCell x y cell)) <| row
+
 gridView: Grid Cell -> E.Element Msg
 gridView grid =
   E.column
@@ -62,6 +63,18 @@ controlsView =
       Element.Input.button controlButtonStyles { label = E.text "➖", onPress = Maybe.Just <| ChangeGridSize Height Decrease } 
     ]
 
+-- Todo
+-- splashScreen: Model -> Html Msg
+-- helpScreen: Model -> Html Msg
+
+flagToggle: Bool -> E.Element Msg
+flagToggle flaggingMode =
+  E.el 
+    [
+      Element.Events.onClick ToggleFlaggingMode,
+      E.padding 20, E.spacing 5
+    ]
+    (E.text <| String.concat ["🚩",(if flaggingMode then "✔️" else "❌")])
 view: Model -> Html Msg
 view model = 
   E.layout 
@@ -77,6 +90,7 @@ view model =
       ] 
       [
         E.el [E.alignTop, E.centerX, Element.Font.size 50] <| E.text "Minesweeper",
+        E.el [E.centerX, E.centerY] <| flagToggle model.flaggingMode,
         E.el [E.centerX, E.centerY] <| gridView model.grid,
         E.el [E.alignBottom, E.centerX] controlsView
       ]
