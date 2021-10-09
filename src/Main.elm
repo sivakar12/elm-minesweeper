@@ -13,6 +13,7 @@ import Element.Border
 import Element.Cursor
 import Maybe
 import Array
+import Element.Cursor exposing (default)
 
 -- TYPES
 type GameStatus = 
@@ -29,7 +30,7 @@ type MineState
   = Mined
   | NotMined
 
-type alias Cell = { covered: CoverState, mine: MineState }
+type alias Cell = { covered: CoverState, mine: MineState, neighboringBombs: Int }
 type alias Model = { grid: Grid Cell }
 
 type ChangeAxis = Width | Height
@@ -45,7 +46,7 @@ type Msg
 
 -- STATE UPDATE HANDLERS
 defaultCell: Cell
-defaultCell = Cell Covered NotMined
+defaultCell = Cell Covered NotMined 0
 
 openCellOnGridLocation: Grid Cell -> Int -> Int -> Grid Cell
 openCellOnGridLocation grid x y =
@@ -68,6 +69,37 @@ placeBombOnGridLocation grid x y =
   in
   Grid.set (x, y) { oldCell | mine = Mined} grid
   
+addNeighborBombsForCell: Grid Cell -> Int -> Int -> Cell
+addNeighborBombsForCell grid x y =
+  let
+    cellOriginal = Maybe.withDefault defaultCell <| Grid.get (x, y) grid
+    neighborCellLocation = 
+      [
+        (x - 1, y - 1),
+        (x - 1, y),
+        (x - 1, y + 1),
+        (x, y - 1),
+        (x, y + 1),
+        (x + 1, y - 1),
+        (x + 1, y),
+        (x + 1, y + 1)
+      ]
+    neighborCells : List (Maybe Cell) 
+    neighborCells = List.map (\(i, j) -> Grid.get (i, j) grid) neighborCellLocation
+    foldFunction = 
+      \maybeCell count -> 
+        case maybeCell of
+          Maybe.Nothing -> count + 0
+          Maybe.Just cell ->
+            case cell.mine of
+              Mined -> count + 1
+              NotMined -> count + 0
+    bombCount = List.foldl foldFunction 0 neighborCells
+  in
+  { cellOriginal | neighboringBombs = bombCount }
+countNeighborBombs: Grid Cell -> Grid Cell
+countNeighborBombs grid =
+  Grid.indexedMap (\x y _ -> addNeighborBombsForCell grid x y ) grid
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -79,7 +111,8 @@ update msg model =
     AddBombs bombLocations -> 
       let
         newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombLocations
-        newModel = { model | grid = newGrid }
+        newGridWithBombsAdded = countNeighborBombs newGrid
+        newModel = { model | grid = newGridWithBombsAdded }
       in (newModel, Cmd.none)
     ChangeGridSize axis direction ->
       let
@@ -115,12 +148,16 @@ cellStyles =
   , Element.Font.size 40
   ]
 
+numbersToEmoji = 
+  Array.fromList 
+    ["⬜", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
+
 displayCell: Int -> Int -> Cell -> E.Element Msg
-displayCell x y { covered, mine } =
+displayCell x y { covered, mine, neighboringBombs } =
   case (covered, mine) of
     (Covered, _) -> E.el (cellStyles ++ [Element.Events.onClick <| OpenCell { x = x, y = y}]) <| E.text "📦"
     (Opened, Mined) -> E.el cellStyles <| E.text "💣"
-    (Opened, NotMined) -> E.el cellStyles <| E.text "8️⃣" -- calculate and put actual number
+    (Opened, NotMined) -> E.el cellStyles <| E.text <| Maybe.withDefault "" <| Array.get neighboringBombs numbersToEmoji
     (Flagged, _) -> E.el cellStyles <| E.text "🚩"
 
 displayRow: Int -> Array.Array Cell -> E.Element Msg
@@ -186,10 +223,15 @@ initialGrid: Int -> Int -> Grid Cell
 initialGrid width height = 
   Grid.repeat width height defaultCell
 
-initialCommand width height bombs = Random.generate AddBombs (getRandomBombPositions width height bombs)
+initialCommand width height bombs = 
+  Random.generate AddBombs (getRandomBombPositions width height bombs)
 
 init : () -> (Model, Cmd Msg)
-init _ = (Model (initialGrid initialWidth initialHeight), initialCommand initialWidth initialHeight initialBombs)
+init _ = 
+  (
+    Model <|initialGrid initialWidth initialHeight, 
+    initialCommand initialWidth initialHeight initialBombs
+  )
 
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.none
