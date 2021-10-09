@@ -154,8 +154,8 @@ displayResult isWon =
           "YOU LOSE!!"
     resultStyle =
       [
-        Element.Background.color <| E.rgb 255 0 0,
-        Element.Font.color <| E.rgb 0 0 0,
+        -- Element.Background.color <| E.rgb 255 0 0,
+        -- Element.Font.color <| E.rgb 0 0 0,
         Element.Font.heavy
       ]
   in
