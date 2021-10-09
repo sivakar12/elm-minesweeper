@@ -113,17 +113,20 @@ update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
     HandleCellClick cell ->
-      let
-        newGrid =
-          case model.flaggingMode of
-            False ->
-              openCellOnGridLocation model.grid cell.x cell.y
-            True ->
-              toggleFlagOnGridLocation model.grid cell.x cell.y
-        isGameLost = (isExplosion model.grid cell.x cell.y) && (not model.flaggingMode)
-        newGameState = if (isGameWon newGrid) then Finished True else (if isGameLost then Finished False else Playing)
-      in
-      ({model | grid = newGrid, gameState = newGameState }, Cmd.none)
+      case model.gameState of
+        Playing ->
+          let
+            newGrid =
+              case model.flaggingMode of
+                False ->
+                  openCellOnGridLocation model.grid cell.x cell.y
+                True ->
+                  toggleFlagOnGridLocation model.grid cell.x cell.y
+            isGameLost = (isExplosion model.grid cell.x cell.y) && (not model.flaggingMode)
+            newGameState = if (isGameWon newGrid) then Finished True else (if isGameLost then Finished False else Playing)
+          in
+          ({model | grid = newGrid, gameState = newGameState }, Cmd.none)
+        _ -> (model, Cmd.none) -- do nothing when the state is not playing
     AddBombs bombLocations -> 
       let
         newGrid = Set.foldl (\(x, y) grid -> (placeBombOnGridLocation grid x y)) model.grid bombLocations
