@@ -1,4 +1,4 @@
-module StateUpdate exposing (update, addRandomBombsCommand, createEmptyGrid)
+module StateUpdate exposing (update, addRandomBombsCommand, createEmptyGrid, getBombCountFromGridSize)
 
 import Set
 import Grid exposing (Grid)
@@ -109,6 +109,11 @@ isExplosion grid x y =
     case (cell.mine) of
       Mined -> True
       _ -> False
+
+getBombCountFromGridSize: Int -> Int -> Int
+getBombCountFromGridSize width height =
+  round <| 0.2 * (toFloat width) * (toFloat height)
+
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
@@ -149,7 +154,7 @@ update msg model =
             case axis of
               Width -> oldHeight
               Height -> oldHeight + change
-          newBombs = 10 -- Todo: Change to 0.2 * new rows * new columns
+          newBombs = getBombCountFromGridSize newWidth newHeight
           newCommand = addRandomBombsCommand newWidth newHeight newBombs
           newGrid = createEmptyGrid newWidth newHeight
           newModel = { model | grid = newGrid}

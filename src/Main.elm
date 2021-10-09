@@ -10,12 +10,12 @@ import Maybe
 import Array
 
 import Types exposing (..)
-import StateUpdate exposing (update, addRandomBombsCommand, createEmptyGrid)
+import StateUpdate exposing (update, addRandomBombsCommand, createEmptyGrid, getBombCountFromGridSize)
 import ViewElmUI exposing (view)
 
 initialWidth = 6
 initialHeight = 10
-initialBombs = 2
+initialBombs = getBombCountFromGridSize initialWidth initialHeight
 
 initialCommand = addRandomBombsCommand
 
