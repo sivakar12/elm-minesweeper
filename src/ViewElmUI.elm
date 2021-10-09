@@ -192,11 +192,16 @@ view model =
       [
           E.centerX,
           E.centerY,
-          E.height E.fill
+          E.height E.fill,
+          Element.Font.family [Element.Font.monospace]
       ] 
       [
         E.el 
-          [E.alignTop, E.centerX, Element.Font.size 50] 
+          [
+            E.alignTop, E.centerX, 
+            Element.Font.size 40, 
+            E.padding 20
+          ] 
           (E.text "MINESWEEPER"),
         E.el
           [E.centerX, E.centerY]
