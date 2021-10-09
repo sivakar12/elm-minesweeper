@@ -4,6 +4,8 @@ I built this Minesweeper clone while learning ELm. I have used all my functional
 knowledge to crete a program that is made up of only pure functions, immutable data structures,
 modular code blocks etc. 
 
+This is hosted [here](https://elm-minesweeper-sivakar12.netlify.app)
+
 ## Screenshots
 ![Screenshot 1](screenshots/1.png)
 ![Screenshot 2](screenshots/2.png)
