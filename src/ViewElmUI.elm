@@ -49,12 +49,13 @@ controlsView: E.Element Msg
 controlsView =
   let
     controlButtonStyles =
-      [ Element.Border.width 1
+      [ 
+          --Element.Border.width 1
       -- , Element.Border.rounded 50
       ]
   in
   E.row
-    []
+    [E.spacing 10 ]
     [
       E.text "Width: ",
       Element.Input.button controlButtonStyles { label = E.text "➕", onPress = Maybe.Just <| ChangeGridSize Width Increase },
@@ -62,7 +63,7 @@ controlsView =
       E.text "Height: ",
       Element.Input.button controlButtonStyles { label = E.text "➕", onPress = Maybe.Just <| ChangeGridSize Height Increase },
       Element.Input.button controlButtonStyles { label = E.text "➖", onPress = Maybe.Just <| ChangeGridSize Height Decrease }, 
-      Element.Input.button controlButtonStyles { label = E.text "Start", onPress = Maybe.Just StartGame}
+      Element.Input.button [Element.Font.heavy] { label = E.text "Start", onPress = Maybe.Just StartGame}
     ]
 
 
@@ -71,13 +72,19 @@ displayResult isWon =
   let 
     resultText =
       case isWon of
-        True -> "Won"
-        False -> "Lost"
+        True -> "YOU WON! 🎉"
+        False -> "YOU LOSE!!"
+    resultStyle =
+      [
+        Element.Background.color <| E.rgb 255 0 0,
+        Element.Font.color <| E.rgb 0 0 0,
+        Element.Font.heavy
+      ]
   in
   E.row
     [E.spacing 20]
     [
-      E.el [] <| E.text resultText,
+      E.el resultStyle <| E.text resultText,
       Element.Input.button [] { label = E.text "New Game", onPress = Maybe.Just StartGame }
     ]
 
@@ -91,28 +98,17 @@ bottomDisplay gameState flaggingMode =
 flagToggle: Bool -> E.Element Msg
 flagToggle flaggingMode =
   let
-    redBackground = 
+    flaggedStyle = 
       [
-        Element.Background.color <| E.rgb 0 0 0,
+        Element.Background.color <| E.rgb 255 0 0,
         Element.Font.color <| E.rgb 255 255 255
       ]
-    whiteBackground = 
-      [
-        Element.Font.color <| E.rgb 0 0 0,
-        Element.Background.color <| E.rgb 255 255 255
-      ]
-    (openModeText, flagModeText) =
-      case flaggingMode of
-        True -> (E.el whiteBackground (E.text "OPEN"), E.el redBackground (E.text "FLAG"))
-        False -> (E.el redBackground (E.text "OPEN"), E.el whiteBackground (E.text "FLAG"))
+    nonFlaggedStyle = []
+    chosenStyle = if flaggingMode then flaggedStyle else nonFlaggedStyle
   in
   E.el 
-    [
-      Element.Events.onClick ToggleFlaggingMode
-      -- E.padding 20, E.spacing 5
-    ]
-    (E.row [E.spacing 20] [openModeText, flagModeText])
-    -- (E.text <| String.concat ["🚩",(if flaggingMode then "✔️" else "❌")])
+    (chosenStyle ++ [Element.Events.onClick ToggleFlaggingMode])    
+    (E.text "🚩")
 view: Model -> Html Msg
 view model = 
   E.layout 
@@ -127,7 +123,7 @@ view model =
           E.height E.fill
       ] 
       [
-        E.el [E.alignTop, E.centerX, Element.Font.size 50] <| E.text "Minesweeper",
+        E.el [E.alignTop, E.centerX, Element.Font.size 50] <| E.text "MINESWEEPER",
         E.el [E.centerX, E.centerY] <| gridView model.grid,
         E.el [E.alignBottom, E.centerX, E.padding 20] <| bottomDisplay model.gameState model.flaggingMode
       ]
