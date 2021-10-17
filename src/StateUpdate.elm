@@ -151,20 +151,20 @@ getBombCountFromGridSize width height =
 neighborCellLocations : (Int, Int) -> List (Int, Int)
 neighborCellLocations (x, y)= 
     [
-      -- (x - 1, y - 1),
+      (x - 1, y - 1),
       (x - 1, y),
-      -- (x - 1, y + 1),
+      (x - 1, y + 1),
       (x, y - 1),
       (x, y + 1),
-      -- (x + 1, y - 1),
-      (x + 1, y)
-      -- (x + 1, y + 1)
+      (x + 1, y - 1),
+      (x + 1, y),
+      (x + 1, y + 1)
     ]
 openAdjacentEmptyCells: Grid Cell -> Set.Set (Int, Int) -> Grid Cell
 openAdjacentEmptyCells grid thingsToRemove =
   -- this is a recursive function
   -- if the set is empty return the grid
-  -- first uncover the cells in the cell (covered is changed from true to false)
+  -- first uncover the cells in the cell if it is zero (covered is changed from true to false)
   -- then find the neighbors of these cells
   -- filter these neighbors to find only those that need clearning (mine count zero, covered true)
   -- pass this new set to the next function
@@ -177,8 +177,17 @@ openAdjacentEmptyCells grid thingsToRemove =
           (\(x, y) g -> openCellOnGridLocation g x y)
           grid
           thingsToRemove
+      thingsToRemoveWithZeros = 
+        Set.filter 
+          (
+            \(x, y) -> 
+              case (Grid.get (x, y) newGrid) of
+                 Maybe.Just cell -> if (cell.neighboringBombs == 0 && cell.mine == NotMined) then True else False
+                 Maybe.Nothing -> False
+          )
+          thingsToRemove
       allNeigibhorsWithDuplicates =
-       Set.map neighborCellLocations thingsToRemove
+       Set.map neighborCellLocations thingsToRemoveWithZeros
       neighborsWithoutDuplicates = 
         Set.foldl
           (\pointsList uniquePoints -> Set.union uniquePoints (Set.fromList pointsList))
@@ -189,7 +198,7 @@ openAdjacentEmptyCells grid thingsToRemove =
           (
             \(x, y) -> 
               case (Grid.get (x, y) newGrid) of
-                Maybe.Just cell -> if (cell.covered == Covered && cell.neighboringBombs == 0 && cell.mine == NotMined) then True else False
+                Maybe.Just cell -> if (cell.covered == Covered && cell.mine == NotMined) then True else False
                 Maybe.Nothing -> False
           )
           neighborsWithoutDuplicates
