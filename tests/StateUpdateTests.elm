@@ -1,13 +1,13 @@
 module StateUpdateTests exposing (suite)
 
-import Expect exposing (Expectation)
+import Expect
 import Test exposing (..)
 
 
 import Grid
 import Types exposing (..)
 import StateUpdate exposing (createEmptyGrid)
-import Maybe exposing (withDefault)
+import Maybe
 
 suite: Test
 suite =

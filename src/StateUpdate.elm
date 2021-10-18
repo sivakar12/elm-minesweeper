@@ -104,6 +104,7 @@ getRandomBombPositions width height bombs =
     (Random.pair (Random.int 0 width) (Random.int 0 height))
 
 
+addRandomBombsCommand : Int -> Int -> Int -> Cmd Msg
 addRandomBombsCommand width height bombs = 
   Random.generate 
     AddBombs 

@@ -1,13 +1,5 @@
 module Main exposing (..)
-import Maybe
-import Array
-import Set exposing (Set)
 import Browser
-import Html exposing (Html)
-import Random
-import Random.Set
-import Grid exposing (Grid)
-
 
 import Types exposing (..)
 import StateUpdate exposing 
@@ -18,15 +10,21 @@ import StateUpdate exposing
   )
 import ViewElmUI exposing (view)
 
+initialWidth : Int
 initialWidth =
   6
+
+initialHeight : Int
 initialHeight =
   10
+
+initialBombs : Int
 initialBombs = 
   getBombCountFromGridSize initialWidth initialHeight
 
+initialCommand : Cmd Msg
 initialCommand =
-  addRandomBombsCommand
+  addRandomBombsCommand initialWidth initialHeight initialBombs
 
 init : () -> (Model, Cmd Msg)
 init _ = 
@@ -35,13 +33,14 @@ init _ =
     , flaggingMode = False
     , gameState = NotStarted
     },
-    initialCommand initialWidth initialHeight initialBombs
+    initialCommand
   )
 
 subscriptions : Model -> Sub Msg
 subscriptions _ = 
   Sub.none
 
+main : Program () Model Msg
 main = 
   Browser.element 
     { init = init

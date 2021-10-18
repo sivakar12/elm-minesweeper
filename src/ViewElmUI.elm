@@ -4,7 +4,6 @@ import Element as E
 import Element.Font
 import Element.Input
 import Element.Events
-import Element.Border
 import Element.Background
 import Element.Cursor
 import Html exposing (Html)
@@ -13,6 +12,7 @@ import Array
 
 import Types exposing (..)
 
+cellStyles : List (E.Attribute msg)
 cellStyles =
   [ E.width <| E.fillPortion 1
   , E.height <| E.fillPortion 1
@@ -21,6 +21,7 @@ cellStyles =
   ]
 
 
+numbersToEmoji : Array.Array String
 numbersToEmoji = 
   Array.fromList 
     [ "⬜", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣" ]
@@ -147,10 +148,10 @@ displayResult: Bool -> E.Element Msg
 displayResult isWon =
   let 
     resultText =
-      case isWon of
-        True -> 
+      if isWon 
+        then
           "YOU WON! 🎉"
-        False ->
+        else
           "YOU LOSE!!"
     resultStyle =
       [
