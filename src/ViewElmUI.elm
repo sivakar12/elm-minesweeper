@@ -9,7 +9,7 @@ import Element.Cursor
 import Html exposing (Html)
 import Grid exposing (Grid)
 import Array
-
+import Element.Lazy exposing (lazy3)
 import Types exposing (..)
 
 cellStyles : List (E.Attribute msg)
@@ -73,7 +73,7 @@ displayRow y row =
     [ E.padding 2, E.spacing 5 ]
     (
       row
-      |> Array.indexedMap (\x cell -> (displayCell x y cell))
+      |> Array.indexedMap (\x cell -> (lazy3 displayCell x y cell))
       |> Array.toList 
     )
 
