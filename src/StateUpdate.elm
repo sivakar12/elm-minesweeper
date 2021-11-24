@@ -3,12 +3,14 @@ module StateUpdate exposing
   , addRandomBombsCommand
   , createEmptyGrid
   , getBombCountFromGridSize
+  , getRandomBombPositions
   )
 
 import Set
 import Grid exposing (Grid)
 import Random
 import Random.Set
+import Debug exposing (toString)
 
 import Types exposing (..)
 
@@ -101,7 +103,7 @@ getRandomBombPositions: Int -> Int -> Int -> Random.Generator BombPositions
 getRandomBombPositions width height bombs = 
   Random.Set.set 
     bombs 
-    (Random.pair (Random.int 0 width) (Random.int 0 height))
+    (Random.pair (Random.int 0 (height - 1)) (Random.int 0 (width - 1)))
 
 
 addRandomBombsCommand : Int -> Int -> Int -> Cmd Msg
@@ -246,6 +248,7 @@ update msg model =
 
     AddBombs bombLocations -> 
       let
+        _ = Debug.log "bombs generated: " <| toString <| bombLocations
         newGrid = 
           Set.foldl 
             (\(x, y) grid -> (placeBombOnGridLocation grid x y)) 
