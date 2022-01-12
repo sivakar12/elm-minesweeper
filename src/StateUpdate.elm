@@ -149,7 +149,7 @@ isExplosion grid x y =
 
 getBombCountFromGridSize: Int -> Int -> Int
 getBombCountFromGridSize width height =
-  round <| 0.2 * (toFloat width) * (toFloat height)
+  round <| 0.16 * (toFloat width) * (toFloat height)
 
 neighborCellLocations : (Int, Int) -> List (Int, Int)
 neighborCellLocations (x, y)= 
